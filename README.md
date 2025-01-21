@@ -1,0 +1,1 @@
+# ssquareplugin-test

@@ -1,6 +1,5 @@
 (function () {
   const widgetStyles = `
-    /* Widget styles */
     #custom-widget {
       position: absolute;
       top: 50px;
@@ -48,17 +47,17 @@
     <input type="number" id="width" />
   `;
 
-  const createWidget = () => {
+  const createWidget = (doc = document) => {
     // Inject styles
-    const styleTag = document.createElement("style");
+    const styleTag = doc.createElement("style");
     styleTag.innerHTML = widgetStyles;
-    document.head.appendChild(styleTag);
+    doc.head.appendChild(styleTag);
 
     // Create widget container
-    const widget = document.createElement("div");
+    const widget = doc.createElement("div");
     widget.id = "custom-widget";
     widget.innerHTML = widgetHTML;
-    document.body.appendChild(widget);
+    doc.body.appendChild(widget);
 
     let isDragging = false;
     let offsetX, offsetY;
@@ -72,21 +71,21 @@
       widget.style.cursor = "grabbing";
     });
 
-    document.addEventListener("mousemove", (e) => {
+    doc.addEventListener("mousemove", (e) => {
       if (isDragging) {
         widget.style.left = `${e.clientX - offsetX}px`;
         widget.style.top = `${e.clientY - offsetY}px`;
       }
     });
 
-    document.addEventListener("mouseup", () => {
+    doc.addEventListener("mouseup", () => {
       isDragging = false;
       widget.style.cursor = "grab";
     });
 
     // Widget logic
     let selectedElement = null;
-    document.addEventListener("click", (e) => {
+    const handleClick = (e) => {
       const target = e.target;
 
       if (target.id !== "custom-widget" && !widget.contains(target)) {
@@ -108,7 +107,9 @@
         widget.querySelector("#width").value =
           parseInt(computedStyles.width, 10) || "";
       }
-    });
+    };
+
+    doc.addEventListener("click", handleClick);
 
     // Update styles on input change
     widget.querySelector("#bg-color").addEventListener("input", (e) => {
@@ -134,10 +135,22 @@
     return `#${result}`;
   };
 
-  // Initialize the widget on DOMContentLoaded
+  const loadInMainOrAdmin = () => {
+    const isInsideIframe = window.self !== window.top;
+
+    if (isInsideIframe) {
+      // Run on the parent document (main domain)
+      const parentDoc = window.parent.document;
+      createWidget(parentDoc);
+    } else {
+      // Run directly on the current document
+      createWidget(document);
+    }
+  };
+
   if (document.readyState !== "loading") {
-    createWidget();
+    loadInMainOrAdmin();
   } else {
-    document.addEventListener("DOMContentLoaded", createWidget);
+    document.addEventListener("DOMContentLoaded", loadInMainOrAdmin);
   }
 })();

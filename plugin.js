@@ -1,156 +1,120 @@
 (function () {
-  const widgetStyles = `
-    #custom-widget {
-      position: absolute;
-      top: 50px;
-      left: 50px;
-      z-index: 9999;
-      background: #ffffff;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      border: 1px solid #ccc;
-      padding: 10px;
-      width: 200px;
-      display: none;
-      cursor: grab;
-    }
-    #custom-widget header {
-      background: #007bff;
-      color: white;
-      padding: 5px;
-      font-size: 14px;
-      cursor: move;
-      text-align: center;
-    }
-    #custom-widget label {
-      display: block;
-      margin: 10px 0 5px;
-      font-size: 12px;
-    }
-    #custom-widget input {
-      width: 100%;
-      padding: 5px;
-      margin-bottom: 10px;
-      box-sizing: border-box;
-    }
-    .highlighted-element {
-      outline: 2px solid orange !important;
-    }
-  `;
+  function loadPluginApp() {
+    // Check if the script is already loaded
+    if (document.getElementById("plugin-widget")) return;
 
-  const widgetHTML = `
-    <header>Widget Controls</header>
-    <label for="bg-color">Background Color:</label>
-    <input type="color" id="bg-color" />
-    <label for="height">Height (px):</label>
-    <input type="number" id="height" />
-    <label for="width">Width (px):</label>
-    <input type="number" id="width" />
-  `;
-
-  const createWidget = (doc = document) => {
-    // Inject styles
-    const styleTag = doc.createElement("style");
-    styleTag.innerHTML = widgetStyles;
-    doc.head.appendChild(styleTag);
-
-    // Create widget container
-    const widget = doc.createElement("div");
-    widget.id = "custom-widget";
-    widget.innerHTML = widgetHTML;
-    doc.body.appendChild(widget);
-
-    let isDragging = false;
-    let offsetX, offsetY;
-
-    // Draggable logic
-    const header = widget.querySelector("header");
-    header.addEventListener("mousedown", (e) => {
-      isDragging = true;
-      offsetX = e.clientX - widget.offsetLeft;
-      offsetY = e.clientY - widget.offsetTop;
-      widget.style.cursor = "grabbing";
-    });
-
-    doc.addEventListener("mousemove", (e) => {
-      if (isDragging) {
-        widget.style.left = `${e.clientX - offsetX}px`;
-        widget.style.top = `${e.clientY - offsetY}px`;
+    // Inject the main script and styles
+    const style = document.createElement("style");
+    style.textContent = `
+      #plugin-widget {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        width: 200px;
+        background: #ffffff;
+        border: 2px solid #000;
+        z-index: 9999;
+        padding: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        cursor: move;
       }
-    });
-
-    doc.addEventListener("mouseup", () => {
-      isDragging = false;
-      widget.style.cursor = "grab";
-    });
-
-    // Widget logic
-    let selectedElement = null;
-    const handleClick = (e) => {
-      const target = e.target;
-
-      if (target.id !== "custom-widget" && !widget.contains(target)) {
-        if (selectedElement)
-          selectedElement.classList.remove("highlighted-element");
-        selectedElement = target;
-        selectedElement.classList.add("highlighted-element");
-        widget.style.display = "block";
-        widget.style.left = `${e.clientX + 10}px`;
-        widget.style.top = `${e.clientY + 10}px`;
-
-        // Populate widget inputs with current styles
-        const computedStyles = getComputedStyle(selectedElement);
-        widget.querySelector("#bg-color").value = rgbToHex(
-          computedStyles.backgroundColor
-        );
-        widget.querySelector("#height").value =
-          parseInt(computedStyles.height, 10) || "";
-        widget.querySelector("#width").value =
-          parseInt(computedStyles.width, 10) || "";
+      #plugin-widget h4 {
+        margin: 0 0 10px;
+        font-size: 16px;
       }
+      #plugin-widget button {
+        margin: 5px 0;
+        padding: 8px;
+        width: 100%;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      #plugin-widget button:hover {
+        background-color: #0056b3;
+      }
+      .highlighted {
+        border: 2px dashed orange !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    const widget = document.createElement("div");
+    widget.id = "plugin-widget";
+    widget.innerHTML = `
+      <h4>Style Editor</h4>
+      <button id="change-bg">Change BG Color</button>
+      <button id="change-size">Change Size</button>
+      <button id="reset-style">Reset</button>
+    `;
+    document.body.appendChild(widget);
+
+    // Drag functionality for the widget
+    widget.addEventListener("mousedown", (e) => {
+      let shiftX = e.clientX - widget.getBoundingClientRect().left;
+      let shiftY = e.clientY - widget.getBoundingClientRect().top;
+
+      function moveAt(pageX, pageY) {
+        widget.style.left = pageX - shiftX + "px";
+        widget.style.top = pageY - shiftY + "px";
+      }
+
+      function onMouseMove(event) {
+        moveAt(event.pageX, event.pageY);
+      }
+
+      document.addEventListener("mousemove", onMouseMove);
+      widget.onmouseup = function () {
+        document.removeEventListener("mousemove", onMouseMove);
+        widget.onmouseup = null;
+      };
+    });
+
+    widget.ondragstart = function () {
+      return false;
     };
 
-    doc.addEventListener("click", handleClick);
+    // Style change logic
+    let selectedElement = null;
 
-    // Update styles on input change
-    widget.querySelector("#bg-color").addEventListener("input", (e) => {
-      if (selectedElement)
-        selectedElement.style.backgroundColor = e.target.value;
+    document.body.addEventListener("click", (e) => {
+      if (e.target.id === "plugin-widget" || widget.contains(e.target)) return;
+
+      if (selectedElement) {
+        selectedElement.classList.remove("highlighted");
+      }
+      selectedElement = e.target;
+      selectedElement.classList.add("highlighted");
     });
 
-    widget.querySelector("#height").addEventListener("input", (e) => {
-      if (selectedElement) selectedElement.style.height = `${e.target.value}px`;
+    document.getElementById("change-bg").addEventListener("click", () => {
+      if (selectedElement) {
+        selectedElement.style.backgroundColor = "yellow";
+      }
     });
 
-    widget.querySelector("#width").addEventListener("input", (e) => {
-      if (selectedElement) selectedElement.style.width = `${e.target.value}px`;
+    document.getElementById("change-size").addEventListener("click", () => {
+      if (selectedElement) {
+        selectedElement.style.width = "200px";
+        selectedElement.style.height = "200px";
+      }
     });
-  };
 
-  const rgbToHex = (rgb) => {
-    const result = rgb
-      .match(/\d+/g)
-      .slice(0, 3)
-      .map((x) => parseInt(x).toString(16).padStart(2, "0"))
-      .join("");
-    return `#${result}`;
-  };
+    document.getElementById("reset-style").addEventListener("click", () => {
+      if (selectedElement) {
+        selectedElement.removeAttribute("style");
+        selectedElement.classList.remove("highlighted");
+        selectedElement = null;
+      }
+    });
+  }
 
-  const loadInMainOrAdmin = () => {
-    const isInsideIframe = window.self !== window.top;
-
-    if (isInsideIframe) {
-      // Run on the parent document (main domain)
-      const parentDoc = window.parent.document;
-      createWidget(parentDoc);
-    } else {
-      // Run directly on the current document
-      createWidget(document);
-    }
-  };
-
-  if (document.readyState !== "loading") {
-    loadInMainOrAdmin();
+  // Load the plugin when the DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadPluginApp);
   } else {
-    document.addEventListener("DOMContentLoaded", loadInMainOrAdmin);
+    loadPluginApp();
   }
 })();

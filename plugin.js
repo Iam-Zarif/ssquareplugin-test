@@ -50,8 +50,6 @@
   console.log("Widget UI created.");
 
   let selectedElement = null;
-
-  // Show widget when any element is clicked (config route only)
   if (isConfigRoute) {
     document.body.addEventListener("click", (e) => {
       e.preventDefault();

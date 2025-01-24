@@ -26,6 +26,7 @@
     <h4>Style Editor</h4>
     <button id="edit-button">Edit</button>
     <button id="publish-style">Publish</button>
+    <button id="cancel-edit" style="display:none;">Cancel Edit</button>
     <div id="progress-bar-container" style="display:none; margin-top:10px;">
       <div id="progress-bar" style="width: 0%; height: 10px; background-color: green;"></div>
     </div>
@@ -38,6 +39,7 @@
   console.log("Widget UI created.");
 
   let selectedElement = null;
+  let originalElementHTML = ""; // To store the original HTML of the element
 
   // Event listener for selecting an element
   document.body.addEventListener("click", (e) => {
@@ -48,6 +50,9 @@
     selectedElement = e.target;
 
     console.log("Element clicked:", selectedElement);
+
+    // Save the original HTML for restoring after edit
+    originalElementHTML = selectedElement.outerHTML;
 
     // Check if the selected element has a parent block ID (Squarespace dynamic blocks)
     let selector = getSelector(selectedElement);
@@ -66,12 +71,31 @@
       // Use editable container for the selected element
       const editableElement = document.createElement("div");
       editableElement.setAttribute("contenteditable", "true");
-      editableElement.style.cssText = "width: 100%; padding: 10px; border: 1px solid #ddd; background-color: #f4f4f4;";
+      editableElement.style.cssText =
+        "width: 100%; padding: 10px; border: 1px solid #ddd; background-color: #f4f4f4;";
       editableElement.innerHTML = selectedElement.outerHTML;
 
       document.body.appendChild(editableElement);
+      editableElement.focus();
 
       console.log("Element is now in edit mode.");
+
+      // Show "Cancel Edit" button
+      document.getElementById("cancel-edit").style.display = "inline-block";
+
+      // Disable edit button once clicked
+      document.getElementById("edit-button").disabled = true;
+
+      // Handle canceling edit
+      document.getElementById("cancel-edit").addEventListener("click", () => {
+        // Restore the original element
+        selectedElement.style.display = "block";
+        editableElement.remove();
+        widget.style.display = "none"; // Hide the widget again
+        document.getElementById("cancel-edit").style.display = "none"; // Hide "Cancel Edit" button
+        document.getElementById("edit-button").disabled = false; // Enable "Edit" button again
+        console.log("Edit canceled. Element restored.");
+      });
     });
   });
 
@@ -84,7 +108,9 @@
 
   // Show progress bar while saving styles globally
   function showProgressBar() {
-    const progressBarContainer = document.getElementById("progress-bar-container");
+    const progressBarContainer = document.getElementById(
+      "progress-bar-container"
+    );
     const progressBar = document.getElementById("progress-bar");
 
     progressBarContainer.style.display = "block";
@@ -115,7 +141,11 @@
         const response = await fetch("http://localhost:3000/save-style", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ selector: selectedElement.id, property: "color", value: property }),
+          body: JSON.stringify({
+            selector: selectedElement.id,
+            property: "color",
+            value: property,
+          }),
         });
         console.log("Saving style to server...", response);
 

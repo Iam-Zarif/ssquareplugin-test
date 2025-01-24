@@ -1,7 +1,7 @@
 (async function () {
   // Check if the current page is the config/code-injection route
   const isConfigRoute = window.location.pathname.includes(
-    "config/pages/website-tools/code-injection"
+    "/config/pages/website-tools/code-injection"
   );
   const isBaseDomain = window.location.pathname === "/";
 

@@ -10,7 +10,7 @@
   widget.id = "style-widget";
   widget.style.cssText = `
     position: fixed;
-    bottom: 10px;
+    top: 10px;
     right: 10px;
     background: white;
     border: 1px solid #ddd;

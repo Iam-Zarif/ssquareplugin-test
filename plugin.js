@@ -1,120 +1,95 @@
-(function () {
-  function loadPluginApp() {
-    // Check if the script is already loaded
-    if (document.getElementById("plugin-widget")) return;
+(async function () {
+  // Check if the current page is the base domain
+  const isBaseDomain = window.location.pathname === "/";
 
-    // Inject the main script and styles
-    const style = document.createElement("style");
-    style.textContent = `
-      #plugin-widget {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        width: 200px;
-        background: #ffffff;
-        border: 2px solid #000;
-        z-index: 9999;
-        padding: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        cursor: move;
-      }
-      #plugin-widget h4 {
-        margin: 0 0 10px;
-        font-size: 16px;
-      }
-      #plugin-widget button {
-        margin: 5px 0;
-        padding: 8px;
-        width: 100%;
-        border: none;
-        background-color: #007bff;
-        color: white;
-        cursor: pointer;
-        font-size: 14px;
-      }
-      #plugin-widget button:hover {
-        background-color: #0056b3;
-      }
-      .highlighted {
-        border: 2px dashed orange !important;
-      }
-    `;
-    document.head.appendChild(style);
+  // Create the widget container
+  const widget = document.createElement("div");
+  widget.id = "style-widget";
+  widget.style.cssText = `
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: white;
+    border: 1px solid #ddd;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    display: ${isBaseDomain ? "none" : "block"}; /* Hide in base domain */
+    z-index: 9999;
+    font-family: Arial, sans-serif;
+  `;
 
-    const widget = document.createElement("div");
-    widget.id = "plugin-widget";
-    widget.innerHTML = `
-      <h4>Style Editor</h4>
-      <button id="change-bg">Change BG Color</button>
-      <button id="change-size">Change Size</button>
-      <button id="reset-style">Reset</button>
-    `;
-    document.body.appendChild(widget);
+  // Add HTML structure for widget controls
+  widget.innerHTML = `
+    <label>
+      Element Selector:
+      <input id="element-selector" type="text" placeholder=".className or #id" />
+    </label>
+    <br />
+    <label>
+      CSS Property:
+      <input id="css-property" type="text" placeholder="e.g., color" />
+    </label>
+    <br />
+    <label>
+      Value:
+      <input id="css-value" type="text" placeholder="e.g., red" />
+    </label>
+    <br />
+    <button id="apply-style">Apply</button>
+  `;
 
-    // Drag functionality for the widget
-    widget.addEventListener("mousedown", (e) => {
-      let shiftX = e.clientX - widget.getBoundingClientRect().left;
-      let shiftY = e.clientY - widget.getBoundingClientRect().top;
+  // Append the widget to the body
+  document.body.appendChild(widget);
 
-      function moveAt(pageX, pageY) {
-        widget.style.left = pageX - shiftX + "px";
-        widget.style.top = pageY - shiftY + "px";
+  // Handle "Apply" button click
+  const applyStyleButton = document.getElementById("apply-style");
+  applyStyleButton.addEventListener("click", async () => {
+    const selector = document.getElementById("element-selector").value.trim();
+    const property = document.getElementById("css-property").value.trim();
+    const value = document.getElementById("css-value").value.trim();
+
+    if (selector && property && value) {
+      // Apply styles immediately to the selected elements
+      const elements = document.querySelectorAll(selector);
+      elements.forEach((el) => (el.style[property] = value));
+
+      // Save style changes to the backend
+      try {
+        const response = await fetch("http://localhost:3000/save-style", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selector, property, value }),
+        });
+
+        if (response.ok) {
+          alert("Style saved successfully!");
+        } else {
+          throw new Error("Failed to save style.");
+        }
+      } catch (error) {
+        console.error("Error saving style:", error);
+        alert("An error occurred while saving style.");
       }
+    } else {
+      alert("Please fill in all fields.");
+    }
+  });
 
-      function onMouseMove(event) {
-        moveAt(event.pageX, event.pageY);
-      }
+  // Fetch and apply saved styles from the backend
+  try {
+    const response = await fetch("http://localhost:3000/get-styles");
+    if (!response.ok) {
+      throw new Error("Failed to fetch saved styles.");
+    }
 
-      document.addEventListener("mousemove", onMouseMove);
-      widget.onmouseup = function () {
-        document.removeEventListener("mousemove", onMouseMove);
-        widget.onmouseup = null;
-      };
+    const savedStyles = await response.json();
+    savedStyles.forEach(({ selector, property, value }) => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach((el) => (el.style[property] = value));
     });
-
-    widget.ondragstart = function () {
-      return false;
-    };
-
-    // Style change logic
-    let selectedElement = null;
-
-    document.body.addEventListener("click", (e) => {
-      if (e.target.id === "plugin-widget" || widget.contains(e.target)) return;
-
-      if (selectedElement) {
-        selectedElement.classList.remove("highlighted");
-      }
-      selectedElement = e.target;
-      selectedElement.classList.add("highlighted");
-    });
-
-    document.getElementById("change-bg").addEventListener("click", () => {
-      if (selectedElement) {
-        selectedElement.style.backgroundColor = "yellow";
-      }
-    });
-
-    document.getElementById("change-size").addEventListener("click", () => {
-      if (selectedElement) {
-        selectedElement.style.width = "200px";
-        selectedElement.style.height = "200px";
-      }
-    });
-
-    document.getElementById("reset-style").addEventListener("click", () => {
-      if (selectedElement) {
-        selectedElement.removeAttribute("style");
-        selectedElement.classList.remove("highlighted");
-        selectedElement = null;
-      }
-    });
-  }
-
-  // Load the plugin when the DOM is ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadPluginApp);
-  } else {
-    loadPluginApp();
+  } catch (error) {
+    console.error("Error fetching saved styles:", error);
+    alert("An error occurred while fetching saved styles.");
   }
 })();

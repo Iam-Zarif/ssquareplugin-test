@@ -61,12 +61,14 @@
 
     console.log("Element clicked:", selectedElement);
 
-    // Simplify the element selection process (focus only on content like <h1>, <p>, etc.)
-    let contentElement = selectedElement.closest("h1, p, div, span"); // You can add more tags if needed
+    // Check if the element is part of the editable content in Squarespace
+    let contentElement = selectedElement.closest(".sqs-block-html-content"); // Find the closest editable block
+
+    // If the element inside the block has content like h1, p, or other relevant tags, select that
     if (contentElement) {
-      // If the element is content that you want to edit, show its content
+      // Get the actual content like <h1> or <p> from the block
       const baseContent =
-        contentElement.querySelector("h1, p, span, div") || contentElement; // Get the actual base content
+        contentElement.querySelector("h1, p, span, div") || contentElement; // Adjust selectors as needed
       document.getElementById("element-selector").value =
         getSelector(baseContent);
       widget.style.display = "block";

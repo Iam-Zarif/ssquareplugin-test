@@ -62,11 +62,13 @@
     console.log("Element clicked:", selectedElement);
 
     // Simplify the element selection process (focus only on content like <h1>, <p>, etc.)
-    let contentElement = selectedElement.closest("h1, p, div"); // You can add more tags if needed
+    let contentElement = selectedElement.closest("h1, p, div, span"); // You can add more tags if needed
     if (contentElement) {
       // If the element is content that you want to edit, show its content
+      const baseContent =
+        contentElement.querySelector("h1, p, span, div") || contentElement; // Get the actual base content
       document.getElementById("element-selector").value =
-        getSelector(contentElement);
+        getSelector(baseContent);
       widget.style.display = "block";
       console.log("Widget is now visible with the base element.");
     }

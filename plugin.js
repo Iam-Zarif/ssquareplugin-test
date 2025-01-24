@@ -41,6 +41,9 @@
     <br />
     <button id="apply-style">Apply</button>
     <button id="publish-style">Publish</button>
+    <div id="progress-bar-container" style="display:none; margin-top:10px;">
+      <div id="progress-bar" style="width: 0%; height: 10px; background-color: green;"></div>
+    </div>
   `;
 
   document.body.appendChild(widget);
@@ -60,8 +63,15 @@
 
     console.log("Element clicked:", selectedElement);
 
-    document.getElementById("element-selector").value =
-      getSelector(selectedElement);
+    // Check if the selected element has a parent block ID (Squarespace dynamic blocks)
+    let selector = getSelector(selectedElement);
+    if (selectedElement.closest('[id^="block-"]')) {
+      // If the element is inside a block, use the block's ID
+      const block = selectedElement.closest('[id^="block-"]');
+      selector = `#${block.id}`;
+    }
+
+    document.getElementById("element-selector").value = selector;
     widget.style.display = "block";
     console.log("Widget is now visible.");
   });
@@ -96,6 +106,27 @@
     }
   });
 
+  // Show progress bar while saving styles globally
+  function showProgressBar() {
+    const progressBarContainer = document.getElementById(
+      "progress-bar-container"
+    );
+    const progressBar = document.getElementById("progress-bar");
+
+    progressBarContainer.style.display = "block";
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      progressBar.style.width = `${progress}%`;
+      if (progress >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          progressBarContainer.style.display = "none";
+        }, 500);
+      }
+    }, 200);
+  }
+
   // Save styles globally (persisted across routes)
   const publishStyleButton = document.getElementById("publish-style");
   publishStyleButton.addEventListener("click", async () => {
@@ -110,6 +141,8 @@
     });
 
     if (selector && property && value) {
+      showProgressBar(); // Show progress bar
+
       try {
         const response = await fetch("http://localhost:3000/save-style", {
           method: "POST",
@@ -155,20 +188,4 @@
   } catch (error) {
     console.error("Error fetching saved styles:", error);
   }
-
-  // MutationObserver to watch for DOM changes and detect editing mode
-  const observer = new MutationObserver(() => {
-    console.log("DOM changes detected. Re-evaluating the element selector...");
-    // Reapply logic for detecting/selecting elements based on current DOM structure
-    if (selectedElement) {
-      document.getElementById("element-selector").value =
-        getSelector(selectedElement);
-    }
-  });
-
-  observer.observe(document.body, {
-    childList: true, // Watch for additions/removals
-    subtree: true, // Watch the entire DOM subtree
-    attributes: true, // Watch for attribute changes (like class changes)
-  });
 })();

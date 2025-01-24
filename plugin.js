@@ -186,4 +186,69 @@
   } catch (error) {
     console.error("Error fetching saved styles:", error);
   }
+
+  // Edit and save widget content
+  const handleWidgetEdit = () => {
+    const widgetContainer = document.getElementById(
+      "block-5d6a7742ce845c4802c8"
+    );
+    const editButton = document.getElementById("edit-button");
+    const widgetText = widgetContainer.querySelector(".widget-text");
+
+    let isEditing = false;
+
+    // Make the content editable
+    const makeEditable = () => {
+      isEditing = true;
+
+      // Create a contenteditable div that keeps the same style and text as the widget
+      const editableDiv = document.createElement("div");
+      editableDiv.setAttribute("contenteditable", "true");
+      editableDiv.setAttribute("style", widgetText.getAttribute("style")); // Preserve styles
+      editableDiv.innerHTML = widgetText.innerHTML; // Copy the current content
+
+      // Replace the widget text with the editable div
+      widgetText.replaceWith(editableDiv);
+
+      // Change the button to save
+      editButton.innerText = "Save";
+      editButton.removeEventListener("click", handleWidgetEdit);
+      editButton.addEventListener("click", handleSaveClick);
+    };
+
+    // Handle saving the edited content
+    const handleSaveClick = () => {
+      const editedContent = document.querySelector(
+        '[contenteditable="true"]'
+      ).innerHTML;
+
+      // Replace the editable div with a new h1 element
+      const newWidgetText = document.createElement("h1");
+      newWidgetText.classList.add("widget-text"); // Keep the same class for styling
+      newWidgetText.innerHTML = editedContent;
+
+      // Replace the editable div with the new h1 element
+      widgetContainer.replaceChild(
+        newWidgetText,
+        document.querySelector('[contenteditable="true"]')
+      );
+
+      // Change the button back to "Edit"
+      editButton.innerText = "Edit";
+      editButton.removeEventListener("click", handleSaveClick);
+      editButton.addEventListener("click", handleWidgetEdit);
+    };
+
+    // Initial click handler for the edit button
+    editButton.addEventListener("click", function () {
+      if (!isEditing) {
+        makeEditable(); // Switch to edit mode
+      }
+    });
+  };
+
+  // Ensure the DOM is fully loaded before initializing the widget
+  document.addEventListener("DOMContentLoaded", function () {
+    handleWidgetEdit();
+  });
 })();

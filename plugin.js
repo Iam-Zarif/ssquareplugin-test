@@ -3,8 +3,6 @@
   console.log("isBaseDomain:", isBaseDomain);
   console.log("Current pathname:", window.location.pathname);
 
- 
-
   console.log("Plugin Loaded: Configuring the widget...");
 
   // Create the widget UI
@@ -50,19 +48,19 @@
 
   let selectedElement = null;
 
-    document.body.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      selectedElement = e.target;
+  // Event listener for selecting an element
+  document.body.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    selectedElement = e.target;
 
-      console.log("Element clicked:", selectedElement);
+    console.log("Element clicked:", selectedElement);
 
-      document.getElementById("element-selector").value =
-        getSelector(selectedElement);
-      widget.style.display = "block";
-      console.log("Widget is now visible.");
-    });
-  
+    document.getElementById("element-selector").value =
+      getSelector(selectedElement);
+    widget.style.display = "block";
+    console.log("Widget is now visible.");
+  });
 
   // Function to get a unique selector for an element
   function getSelector(el) {
@@ -82,10 +80,12 @@
 
     if (selector && property && value) {
       const elements = document.querySelectorAll(selector);
-      elements.forEach((el) => (el.style[property] = value));
-      console.log(
-        `Applied style ${property}: ${value} to elements matching ${selector}`
-      );
+      elements.forEach((el) => {
+        el.style[property] = value;
+        console.log(
+          `Applied style ${property}: ${value} to elements matching ${selector}`
+        );
+      });
       alert("Style applied locally.");
     } else {
       alert("Please fill in all fields.");
@@ -132,7 +132,7 @@
   // Fetch and apply saved styles globally on all routes
   try {
     const response = await fetch("http://localhost:3000/get-styles");
-    console.log("Fetching saved styles...",response);
+    console.log("Fetching saved styles...", response);
 
     if (!response.ok) throw new Error("Failed to fetch saved styles.");
 

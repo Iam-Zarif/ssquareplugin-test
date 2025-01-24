@@ -1,8 +1,5 @@
 (async function () {
-  // Check if the current page is the base domain
   const isBaseDomain = window.location.pathname === "/";
-
-  // Create the widget container
   const widget = document.createElement("div");
   widget.id = "style-widget";
   widget.style.cssText = `
@@ -19,7 +16,6 @@
     font-family: Arial, sans-serif;
   `;
 
-  // Add HTML structure for widget controls
   widget.innerHTML = `
     <label>
       Element Selector:
@@ -39,10 +35,8 @@
     <button id="apply-style">Apply</button>
   `;
 
-  // Append the widget to the body
   document.body.appendChild(widget);
 
-  // Handle "Apply" button click
   const applyStyleButton = document.getElementById("apply-style");
   applyStyleButton.addEventListener("click", async () => {
     const selector = document.getElementById("element-selector").value.trim();
@@ -50,11 +44,9 @@
     const value = document.getElementById("css-value").value.trim();
 
     if (selector && property && value) {
-      // Apply styles immediately to the selected elements
       const elements = document.querySelectorAll(selector);
       elements.forEach((el) => (el.style[property] = value));
 
-      // Save style changes to the backend
       try {
         const response = await fetch("http://localhost:3000/save-style", {
           method: "POST",
@@ -75,8 +67,6 @@
       alert("Please fill in all fields.");
     }
   });
-
-  // Fetch and apply saved styles from the backend
   try {
     const response = await fetch("http://localhost:3000/get-styles");
     if (!response.ok) {

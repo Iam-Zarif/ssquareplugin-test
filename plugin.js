@@ -24,13 +24,25 @@
 
   widget.innerHTML = `
     <h4>Style Editor</h4>
-    <button id="edit-button">Edit</button>
+    <label>
+      Element Selector:
+      <input id="element-selector" type="text" placeholder=".className or #id" />
+    </label>
+    <br />
+    <label>
+      CSS Property:
+      <input id="css-property" type="text" placeholder="e.g., color" />
+    </label>
+    <br />
+    <label>
+      Value:
+      <input id="css-value" type="text" placeholder="e.g., red" />
+    </label>
+    <br />
+    <button id="apply-style">Apply</button>
     <button id="publish-style">Publish</button>
     <div id="progress-bar-container" style="display:none; margin-top:10px;">
       <div id="progress-bar" style="width: 0%; height: 10px; background-color: green;"></div>
-    </div>
-    <div id="color-palette">
-      <input type="color" id="color-picker" value="#ff0000">
     </div>
   `;
 
@@ -38,12 +50,12 @@
   console.log("Widget UI created.");
 
   let selectedElement = null;
-
-  // Event listener for selecting an element
   document.body.addEventListener("click", (e) => {
-    if (e.target.closest("#style-widget")) return; // Prevent widget selection itself
     e.preventDefault();
     e.stopPropagation();
+
+    // Prevent widget selection itself
+    if (e.target.closest("#style-widget")) return;
 
     selectedElement = e.target;
 
@@ -57,22 +69,9 @@
       selector = `#${block.id}`;
     }
 
-    document.getElementById("edit-button").disabled = false;
-    document.getElementById("edit-button").addEventListener("click", () => {
-      // Show element in full-screen editing mode
-      widget.style.display = "block";
-      selectedElement.style.display = "none"; // Hide original element in edit mode
-
-      // Use editable container for the selected element
-      const editableElement = document.createElement("div");
-      editableElement.setAttribute("contenteditable", "true");
-      editableElement.style.cssText = "width: 100%; padding: 10px; border: 1px solid #ddd; background-color: #f4f4f4;";
-      editableElement.innerHTML = selectedElement.outerHTML;
-
-      document.body.appendChild(editableElement);
-
-      console.log("Element is now in edit mode.");
-    });
+    document.getElementById("element-selector").value = selector;
+    widget.style.display = "block";
+    console.log("Widget is now visible.");
   });
 
   // Function to get a unique selector for an element
@@ -82,9 +81,34 @@
     return el.tagName.toLowerCase();
   }
 
+  // Apply styles to the selected element
+  const applyStyleButton = document.getElementById("apply-style");
+  applyStyleButton.addEventListener("click", () => {
+    const selector = document.getElementById("element-selector").value.trim();
+    const property = document.getElementById("css-property").value.trim();
+    const value = document.getElementById("css-value").value.trim();
+
+    console.log("Apply style clicked. Values:", { selector, property, value });
+
+    if (selector && property && value) {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach((el) => {
+        el.style[property] = value;
+        console.log(
+          `Applied style ${property}: ${value} to elements matching ${selector}`
+        );
+      });
+      alert("Style applied locally.");
+    } else {
+      alert("Please fill in all fields.");
+    }
+  });
+
   // Show progress bar while saving styles globally
   function showProgressBar() {
-    const progressBarContainer = document.getElementById("progress-bar-container");
+    const progressBarContainer = document.getElementById(
+      "progress-bar-container"
+    );
     const progressBar = document.getElementById("progress-bar");
 
     progressBarContainer.style.display = "block";
@@ -104,18 +128,24 @@
   // Save styles globally (persisted across routes)
   const publishStyleButton = document.getElementById("publish-style");
   publishStyleButton.addEventListener("click", async () => {
-    const property = document.getElementById("color-picker").value.trim();
+    const selector = document.getElementById("element-selector").value.trim();
+    const property = document.getElementById("css-property").value.trim();
+    const value = document.getElementById("css-value").value.trim();
 
-    console.log("Publish style clicked. Color:", property);
+    console.log("Publish style clicked. Values:", {
+      selector,
+      property,
+      value,
+    });
 
-    if (property) {
+    if (selector && property && value) {
       showProgressBar(); // Show progress bar
 
       try {
         const response = await fetch("http://localhost:3000/save-style", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ selector: selectedElement.id, property: "color", value: property }),
+          body: JSON.stringify({ selector, property, value }),
         });
         console.log("Saving style to server...", response);
 
@@ -130,7 +160,7 @@
         alert("An error occurred while saving style.");
       }
     } else {
-      alert("Please select a color.");
+      alert("Please fill in all fields.");
     }
   });
 

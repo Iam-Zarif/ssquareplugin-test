@@ -1,5 +1,5 @@
 (async function () {
- 
+ const isConfigRoute = window.location.pathname === "/"
   const isBaseDomain = window.location.pathname === "/";
   console.log("isBaseDomain:", isBaseDomain);
   console.log("Current pathname:", window.location.pathname);

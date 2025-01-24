@@ -1,5 +1,6 @@
 (async function () {
   const isBaseDomain = window.location.pathname === "/";
+  console.log("plugin Loaded from Zarif")
   const widget = document.createElement("div");
   widget.id = "style-widget";
   widget.style.cssText = `
@@ -39,6 +40,7 @@
 
   const applyStyleButton = document.getElementById("apply-style");
   applyStyleButton.addEventListener("click", async () => {
+    console.log("CLicked from Zarif")
     const selector = document.getElementById("element-selector").value.trim();
     const property = document.getElementById("css-property").value.trim();
     const value = document.getElementById("css-value").value.trim();
@@ -53,6 +55,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ selector, property, value }),
         });
+        console.log("Response",response)
 
         if (response.ok) {
           alert("Style saved successfully!");
@@ -69,6 +72,7 @@
   });
   try {
     const response = await fetch("http://localhost:3000/get-styles");
+    console.log("Response",response)
     if (!response.ok) {
       throw new Error("Failed to fetch saved styles.");
     }

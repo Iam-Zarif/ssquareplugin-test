@@ -1,18 +1,10 @@
 (async function () {
-  // Check if the current page is the config/code-injection route
-  const isConfigRoute = window.location.pathname.includes(
-    "/config/pages/website-tools/code-injection"
-  );
+ 
   const isBaseDomain = window.location.pathname === "/";
-
-  console.log("isConfigRoute:", isConfigRoute);
   console.log("isBaseDomain:", isBaseDomain);
   console.log("Current pathname:", window.location.pathname);
 
-  if (!isConfigRoute && isBaseDomain) {
-    console.log("Widget will not load on the base domain.");
-    return; // Exit early if on the base domain
-  }
+ 
 
   console.log("Plugin Loaded: Configuring the widget...");
 
@@ -123,6 +115,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ selector, property, value }),
         });
+        console.log("Saving style to server...", response);
 
         if (response.ok) {
           console.log("Style saved globally.");
@@ -142,7 +135,7 @@
   // Fetch and apply saved styles globally on all routes
   try {
     const response = await fetch("http://localhost:3000/get-styles");
-    console.log("Fetching saved styles...");
+    console.log("Fetching saved styles...",response);
 
     if (!response.ok) throw new Error("Failed to fetch saved styles.");
 

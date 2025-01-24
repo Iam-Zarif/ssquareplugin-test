@@ -61,17 +61,15 @@
 
     console.log("Element clicked:", selectedElement);
 
-    // Check if the selected element has a parent block ID (Squarespace dynamic blocks)
-    let selector = getSelector(selectedElement);
-    if (selectedElement.closest('[id^="block-"]')) {
-      // If the element is inside a block, use the block's ID
-      const block = selectedElement.closest('[id^="block-"]');
-      selector = `#${block.id}`;
+    // Check if the selected element is the content we want (e.g., <h1> tag)
+    let contentElement = selectedElement.closest("h1, p, div"); // Change this selector as needed
+    if (contentElement) {
+      // If the element is a block element that you want to edit, show its content
+      document.getElementById("element-selector").value =
+        getSelector(contentElement);
+      widget.style.display = "block";
+      console.log("Widget is now visible with simple element.");
     }
-
-    document.getElementById("element-selector").value = selector;
-    widget.style.display = "block";
-    console.log("Widget is now visible.");
   });
 
   // Function to get a unique selector for an element
@@ -186,69 +184,4 @@
   } catch (error) {
     console.error("Error fetching saved styles:", error);
   }
-
-  // Edit and save widget content
-  const handleWidgetEdit = () => {
-    const widgetContainer = document.getElementById(
-      "block-5d6a7742ce845c4802c8"
-    );
-    const editButton = document.getElementById("edit-button");
-    const widgetText = widgetContainer.querySelector(".widget-text");
-
-    let isEditing = false;
-
-    // Make the content editable
-    const makeEditable = () => {
-      isEditing = true;
-
-      // Create a contenteditable div that keeps the same style and text as the widget
-      const editableDiv = document.createElement("div");
-      editableDiv.setAttribute("contenteditable", "true");
-      editableDiv.setAttribute("style", widgetText.getAttribute("style")); // Preserve styles
-      editableDiv.innerHTML = widgetText.innerHTML; // Copy the current content
-
-      // Replace the widget text with the editable div
-      widgetText.replaceWith(editableDiv);
-
-      // Change the button to save
-      editButton.innerText = "Save";
-      editButton.removeEventListener("click", handleWidgetEdit);
-      editButton.addEventListener("click", handleSaveClick);
-    };
-
-    // Handle saving the edited content
-    const handleSaveClick = () => {
-      const editedContent = document.querySelector(
-        '[contenteditable="true"]'
-      ).innerHTML;
-
-      // Replace the editable div with a new h1 element
-      const newWidgetText = document.createElement("h1");
-      newWidgetText.classList.add("widget-text"); // Keep the same class for styling
-      newWidgetText.innerHTML = editedContent;
-
-      // Replace the editable div with the new h1 element
-      widgetContainer.replaceChild(
-        newWidgetText,
-        document.querySelector('[contenteditable="true"]')
-      );
-
-      // Change the button back to "Edit"
-      editButton.innerText = "Edit";
-      editButton.removeEventListener("click", handleSaveClick);
-      editButton.addEventListener("click", handleWidgetEdit);
-    };
-
-    // Initial click handler for the edit button
-    editButton.addEventListener("click", function () {
-      if (!isEditing) {
-        makeEditable(); // Switch to edit mode
-      }
-    });
-  };
-
-  // Ensure the DOM is fully loaded before initializing the widget
-  document.addEventListener("DOMContentLoaded", function () {
-    handleWidgetEdit();
-  });
 })();

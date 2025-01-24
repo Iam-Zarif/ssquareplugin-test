@@ -1,5 +1,4 @@
 (async function () {
- const isConfigRoute = window.location.pathname === "/"
   const isBaseDomain = window.location.pathname === "/";
   console.log("isBaseDomain:", isBaseDomain);
   console.log("Current pathname:", window.location.pathname);
@@ -50,7 +49,7 @@
   console.log("Widget UI created.");
 
   let selectedElement = null;
-  if (isConfigRoute) {
+
     document.body.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -63,7 +62,7 @@
       widget.style.display = "block";
       console.log("Widget is now visible.");
     });
-  }
+  
 
   // Function to get a unique selector for an element
   function getSelector(el) {

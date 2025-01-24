@@ -155,4 +155,20 @@
   } catch (error) {
     console.error("Error fetching saved styles:", error);
   }
+
+  // MutationObserver to watch for DOM changes and detect editing mode
+  const observer = new MutationObserver(() => {
+    console.log("DOM changes detected. Re-evaluating the element selector...");
+    // Reapply logic for detecting/selecting elements based on current DOM structure
+    if (selectedElement) {
+      document.getElementById("element-selector").value =
+        getSelector(selectedElement);
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true, // Watch for additions/removals
+    subtree: true, // Watch the entire DOM subtree
+    attributes: true, // Watch for attribute changes (like class changes)
+  });
 })();

@@ -68,12 +68,15 @@
       widget.style.display = "block";
       selectedElement.style.display = "none"; // Hide original element in edit mode
 
-      // Use editable container for the selected element
+      // Preserve the original styles of the element
       const editableElement = document.createElement("div");
       editableElement.setAttribute("contenteditable", "true");
       editableElement.style.cssText =
-        "width: 100%; padding: 10px; border: 1px solid #ddd; background-color: #f4f4f4;";
-      editableElement.innerHTML = selectedElement.outerHTML;
+        "width: 100%; padding: 10px; border: 1px solid #ddd; background-color: #f4f4f4; white-space: pre-wrap;"; // Preserve text wrapping style
+      editableElement.innerHTML = selectedElement.innerHTML;
+
+      // Apply the styles before editing (preserve original styles)
+      editableElement.style.cssText = selectedElement.style.cssText;
 
       document.body.appendChild(editableElement);
       editableElement.focus();

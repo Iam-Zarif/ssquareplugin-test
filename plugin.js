@@ -52,6 +52,10 @@
   document.body.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Prevent widget selection itself
+    if (e.target.closest("#style-widget")) return;
+
     selectedElement = e.target;
 
     console.log("Element clicked:", selectedElement);

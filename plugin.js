@@ -67,10 +67,8 @@
     // If the element inside the block has content like h1, p, or other relevant tags, select that
     if (contentElement) {
       // Get the actual content like <h1> or <p> from the block
-      const baseContent =
-        contentElement.querySelector("h1, p, span, div") || contentElement; // Adjust selectors as needed
-      document.getElementById("element-selector").value =
-        getSelector(baseContent);
+      const baseContent = contentElement.querySelector("h1, p, span, div") || contentElement; // Adjust selectors as needed
+      document.getElementById("element-selector").value = getSelector(baseContent);
       widget.style.display = "block";
       console.log("Widget is now visible with the base element.");
     }
@@ -96,9 +94,7 @@
       const elements = document.querySelectorAll(selector);
       elements.forEach((el) => {
         el.style[property] = value;
-        console.log(
-          `Applied style ${property}: ${value} to elements matching ${selector}`
-        );
+        console.log(`Applied style ${property}: ${value} to elements matching ${selector}`);
       });
       alert("Style applied locally.");
     } else {
@@ -108,9 +104,7 @@
 
   // Show progress bar while saving styles globally
   function showProgressBar() {
-    const progressBarContainer = document.getElementById(
-      "progress-bar-container"
-    );
+    const progressBarContainer = document.getElementById("progress-bar-container");
     const progressBar = document.getElementById("progress-bar");
 
     progressBarContainer.style.display = "block";

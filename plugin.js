@@ -7,6 +7,7 @@
 
   console.log("isConfigRoute:", isConfigRoute);
   console.log("isBaseDomain:", isBaseDomain);
+  console.log("Current pathname:", window.location.pathname);
 
   if (!isConfigRoute && isBaseDomain) {
     console.log("Widget will not load on the base domain.");
@@ -56,7 +57,6 @@
   document.body.appendChild(widget);
   console.log("Widget UI created.");
 
-  // Widget logic
   let selectedElement = null;
 
   // Show widget when any element is clicked (config route only)
